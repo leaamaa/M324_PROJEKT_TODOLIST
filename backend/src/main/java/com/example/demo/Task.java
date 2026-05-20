@@ -7,6 +7,7 @@ package com.example.demo;
 public class Task {
 	
 	private String taskdescription; // must have the EXACT name as his React state property and may not be ignored!
+	private boolean completed;
 
 	public Task() {
     }
@@ -19,4 +20,11 @@ public class Task {
 		this.taskdescription = taskdescription;
 	}
 
+	public boolean isCompleted() {
+		return completed;
+	}
+
+	public void setCompleted(boolean completed) {
+		this.completed = completed;
+	}
 }

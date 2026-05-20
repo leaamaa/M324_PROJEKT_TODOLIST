@@ -72,6 +72,26 @@ function App() {
     .catch(error => console.log(error))
   }
 
+  const toggleTodo = (taskdescription) => {
+
+  console.log("Toggle task: " + taskdescription);
+
+  fetch("http://localhost:8080/toggle", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      taskdescription: taskdescription
+    })
+  })
+    .then(response => {
+      console.log(response);
+      window.location.href = "/";
+    })
+    .catch(error => console.log(error));
+}
+
   /**
    * render all task lines
    * @param {*} todos : Task list
@@ -82,8 +102,10 @@ function App() {
       <ul className="todo-list">
         {todos.map((todo, index) => (
           <li key={todo.taskdescription}>
-            <span>{"Task " + (index+1) + ": "+ todo.taskdescription}</span>
-            <button onClick={(event) => handleDelete(event, todo.taskdescription) }>&#10004;</button>
+            <span style={{ textDecoration: todo.completed === true ? 'line-through' : 'none' }}>
+            {"Task " + (index+1) + ": "+ todo.taskdescription}</span>
+            <button onClick={() => toggleTodo(todo.taskdescription) }>{todo.completed === true ? "✅" : "⬜"} </button>
+            <button onClick={(event) => handleDelete(event, todo.taskdescription)}>🗑️</button>
           </li>
         ))}
       </ul>
