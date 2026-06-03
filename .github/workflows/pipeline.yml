@@ -19,6 +19,10 @@ jobs:
 
       - run: npm install
       - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist
 
   build-backend:
     runs-on: ubuntu-latest
@@ -35,3 +39,7 @@ jobs:
           java-version: 17
 
       - run: mvn clean package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: backend/target/*.jar
