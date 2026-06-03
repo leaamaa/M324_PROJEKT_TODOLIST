@@ -100,4 +100,39 @@ public class DemoApplication {
 		return "redirect:/";
 	}
 
+	@CrossOrigin
+@PostMapping("/toggle")
+public String toggleTask(@RequestBody String taskdescription) {
+
+    System.out.println("API EP '/toggle': '" + taskdescription + "'");
+
+    ObjectMapper mapper = new ObjectMapper();
+
+    try {
+        Task task;
+        task = mapper.readValue(taskdescription, Task.class);
+
+        for (Task t : tasks) {
+
+            if (t.getTaskdescription().equals(task.getTaskdescription())) {
+
+                t.setCompleted(!t.isCompleted());
+
+                System.out.println("...toggling task: '" 
+                        + task.getTaskdescription() + "' to "
+                        + t.isCompleted());
+
+                return "redirect:/";
+            }
+        }
+
+        System.out.println(">>>task not found!");
+
+    } catch (JsonProcessingException e) {
+        e.printStackTrace();
+    }
+
+    return "redirect:/";
+}
+
 }
