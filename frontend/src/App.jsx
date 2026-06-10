@@ -1,136 +1,148 @@
 import { useEffect, useState } from 'react'
 import logo from './assets/react.svg'
-
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
   const [todos, setTodos] = useState([]);
   const [taskdescription, setTaskdescription] = useState("");
+  const [groups, setGroups] = useState(["Allgemein"]);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState("Allgemein");
 
-  /** Is called when the html form is submitted. It sends a POST request to the API endpoint '/tasks' and updates the component's state with the new todo.
-  ** In this case a new taskdecription is added to the actual list on the server.
-  */
   const handleSubmit = event => {
     event.preventDefault();
-    console.log("Sending task description to Spring-Server: "+taskdescription);
-    fetch("http://localhost:8080/tasks", {  // API endpoint (the complete URL!) to save a taskdescription
+    fetch("http://localhost:8080/tasks", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ taskdescription: taskdescription }) // both 'taskdescription' are identical to Task-Class attribute in Spring
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ taskdescription: taskdescription })
     })
-    .then(response => {
-      console.log("Receiving answer after sending to Spring-Server: ");
-      console.log(response);
-      window.location.href = "/";
-      setTaskdescription("");             // clear input field, preparing it for the next input
+    .then(() => {
+      setTaskdescription("");
+      fetchTodos();
     })
     .catch(error => console.log(error))
   }
 
-   /** Is called when ever the html input field value below changes to update the component's state.
-  ** This is, because the submit should not take the field value directly.
-  ** The task property in the state is used to store the current value of the input field as the user types into it.
-  ** This is necessary because React operates on the principle of state and props, which means that a component's state
-  ** determines the component's behavior and render.
-  ** If we used the value directly from the HTML form field, we wouldn't be able to update the component's state and react to changes in the input field.
-  */
-  const handleChange = event => {
-    setTaskdescription(event.target.value);
+  const handleChange = event => setTaskdescription(event.target.value);
+
+  const fetchTodos = () => {
+    fetch("http://localhost:8080/").then(r => r.json()).then(data => setTodos(data));
   }
 
+  useEffect(() => { fetchTodos(); }, []);
 
-  /** Is called when the component is mounted (after any refresh or F5).
-  ** It updates the component's state with the fetched todos from the API Endpoint '/'.
-  */
-  useEffect(() => {
-    fetch("http://localhost:8080/").then(response => response.json()).then(data => {
-      setTodos(data);
-    });
-  }, []);
-
-
- /** Is called when the Done-Button is pressed. It sends a POST request to the API endpoint '/delete' and updates the component's state with the new todo.
-  ** In this case if the task with the unique taskdescription is found on the server, it will be removed from the list.
-  */
   const handleDelete = (event, taskdescription) => {
-    console.log("Sending task description to delete on Spring-Server: "+taskdescription);
-    fetch(`http://localhost:8080/delete`, { // API endpoint (the complete URL!) to delete an existing taskdescription in the list
+    fetch("http://localhost:8080/delete", {
       method: "POST",
-      body: JSON.stringify({ taskdescription: taskdescription }),
-      headers: {
-        "Content-Type": "application/json"
-      }
+      body: JSON.stringify({ taskdescription }),
+      headers: { "Content-Type": "application/json" }
     })
-    .then(response => {
-      console.log("Receiving answer after deleting on Spring-Server: ");
-      console.log(response);
-      window.location.href = "/";
-    })
+    .then(() => fetchTodos())
     .catch(error => console.log(error))
   }
 
   const toggleTodo = (taskdescription) => {
-
-  console.log("Toggle task: " + taskdescription);
-
-  fetch("http://localhost:8080/toggle", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      taskdescription: taskdescription
+    fetch("http://localhost:8080/toggle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ taskdescription })
     })
-  })
-    .then(response => {
-      console.log(response);
-      window.location.href = "/";
-    })
+    .then(() => fetchTodos())
     .catch(error => console.log(error));
-}
-
-  /**
-   * render all task lines
-   * @param {*} todos : Task list
-   * @returns html code snippet
-  */
-  const renderTasks = (todos) => {
-    return (
-      <ul className="todo-list">
-        {todos.map((todo, index) => (
-          <li key={todo.taskdescription}>
-            <span style={{ textDecoration: todo.completed === true ? 'line-through' : 'none' }}>
-            {"Task " + (index+1) + ": "+ todo.taskdescription}</span>
-            <button onClick={() => toggleTodo(todo.taskdescription) }>{todo.completed === true ? "✅" : "⬜"} </button>
-            <button onClick={(event) => handleDelete(event, todo.taskdescription)}>🗑️</button>
-          </li>
-        ))}
-      </ul>
-    );
   }
+
+  const handleAddGroup = () => {
+    if (newGroupName.trim() && !groups.includes(newGroupName.trim())) {
+      setGroups([...groups, newGroupName.trim()]);
+      setNewGroupName("");
+    }
+  }
+
+  const handleDeleteGroup = (groupName) => {
+    if (groupName === "Allgemein") return;
+    setGroups(groups.filter(g => g !== groupName));
+    if (selectedGroup === groupName) setSelectedGroup("Allgemein");
+  }
+
+  // todos filtered by selected group (stored locally as group property)
+  const [todoGroups, setTodoGroups] = useState({});
+
+  const assignGroup = (taskdescription, group) => {
+    setTodoGroups(prev => ({ ...prev, [taskdescription]: group }));
+  }
+
+  const getTodoGroup = (taskdescription) => todoGroups[taskdescription] || "Allgemein";
+
+  const filteredTodos = selectedGroup === "Alle"
+    ? todos
+    : todos.filter(todo => getTodoGroup(todo.taskdescription) === selectedGroup);
+
+  const renderTasks = (todos) => (
+    <ul className="todo-list">
+      {todos.map((todo, index) => (
+        <li key={todo.taskdescription}>
+          <span style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>
+            {"Task " + (index + 1) + ": " + todo.taskdescription}
+          </span>
+          <select
+            value={getTodoGroup(todo.taskdescription)}
+            onChange={e => assignGroup(todo.taskdescription, e.target.value)}
+            className="group-select"
+          >
+            {groups.map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
+          <button onClick={() => toggleTodo(todo.taskdescription)}>
+            {todo.completed ? "✅" : "⬜"}
+          </button>
+          <button onClick={(event) => handleDelete(event, todo.taskdescription)}>🗑️</button>
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <h1>
-          ToDo Liste
-        </h1>
-        <form onSubmit={handleSubmit} className='todo-form'>
-          <label htmlFor="taskdescription">Neues Todo anlegen:</label>
-          <input
-            type="text"
-            value={taskdescription}
-            onChange={handleChange}
-          />
+        <h1>ToDo Liste</h1>
+
+        <form onSubmit={handleSubmit} className="todo-form">
+          <label>Neues Todo anlegen:</label>
+          <input type="text" value={taskdescription} onChange={handleChange} />
           <button type="submit">Absenden</button>
         </form>
-        <div>
-          {renderTasks(todos)}
+
+        <div className="group-section">
+          <h2>Gruppen</h2>
+          <div className="group-input">
+            <input
+              type="text"
+              placeholder="Neue Gruppe..."
+              value={newGroupName}
+              onChange={e => setNewGroupName(e.target.value)}
+            />
+            <button onClick={handleAddGroup}>+ Gruppe</button>
+          </div>
+          <div className="group-tabs">
+            <button
+              className={selectedGroup === "Alle" ? "tab active" : "tab"}
+              onClick={() => setSelectedGroup("Alle")}
+            >Alle</button>
+            {groups.map(g => (
+              <div key={g} className="tab-wrapper">
+                <button
+                  className={selectedGroup === g ? "tab active" : "tab"}
+                  onClick={() => setSelectedGroup(g)}
+                >{g}</button>
+                {g !== "Allgemein" && (
+                  <button className="tab-delete" onClick={() => handleDeleteGroup(g)}>✕</button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
+
+        <div>{renderTasks(filteredTodos)}</div>
       </header>
     </div>
   );
