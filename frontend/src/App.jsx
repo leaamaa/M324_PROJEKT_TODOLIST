@@ -11,7 +11,7 @@ function App() {
 
   const handleSubmit = event => {
     event.preventDefault();
-    fetch("http://localhost:8080/tasks", {
+    fetch("http://localhost:8080/api/v1/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ taskdescription: taskdescription })
@@ -26,13 +26,13 @@ function App() {
   const handleChange = event => setTaskdescription(event.target.value);
 
   const fetchTodos = () => {
-    fetch("http://localhost:8080/").then(r => r.json()).then(data => setTodos(data));
+    fetch("http://localhost:8080/api/v1/").then(r => r.json()).then(data => setTodos(data));
   }
 
   useEffect(() => { fetchTodos(); }, []);
 
   const handleDelete = (event, taskdescription) => {
-    fetch("http://localhost:8080/delete", {
+    fetch("http://localhost:8080/api/v1/delete", {
       method: "POST",
       body: JSON.stringify({ taskdescription }),
       headers: { "Content-Type": "application/json" }
@@ -42,7 +42,7 @@ function App() {
   }
 
   const toggleTodo = (taskdescription) => {
-    fetch("http://localhost:8080/toggle", {
+    fetch("http://localhost:8080/api/v1/toggle", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ taskdescription })
