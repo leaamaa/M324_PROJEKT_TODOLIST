@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  backend:
+    image: ghcr.io/leaamaa/m324_projekt_todolist/backend:latest
+    container_name: todo-backend
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    networks:
+      - todo-network
+
+  frontend:
+    image: ghcr.io/leaamaa/m324_projekt_todolist/frontend:latest
+    container_name: todo-frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - todo-network
+
+networks:
+  todo-network:
+    driver: bridge
