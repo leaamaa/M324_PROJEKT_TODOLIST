@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   backend:
     image: ghcr.io/leaamaa/m324_projekt_todolist/backend:latest
