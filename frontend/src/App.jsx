@@ -8,9 +8,18 @@ function App() {
   const [groups, setGroups] = useState(["Allgemein"]);
   const [newGroupName, setNewGroupName] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("Allgemein");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loadError, setLoadError] = useState(false);
 
   const handleSubmit = event => {
     event.preventDefault();
+
+    if (taskdescription.trim() === "") {
+      setErrorMessage("Bitte einen Text eingeben!");
+      return;
+    }
+    setErrorMessage("");
+
     fetch("http://localhost:8080/api/v1/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -23,10 +32,26 @@ function App() {
     .catch(error => console.log(error))
   }
 
-  const handleChange = event => setTaskdescription(event.target.value);
+  const handleChange = event => {
+    setTaskdescription(event.target.value);
+    if (event.target.value.trim() !== "") {
+      setErrorMessage("");
+    }
+  }
 
   const fetchTodos = () => {
-    fetch("http://localhost:8080/api/v1/").then(r => r.json()).then(data => setTodos(data));
+    fetch("http://localhost:8080/api/v1/")
+      .then(r => {
+        if (!r.ok) throw new Error("Fehler beim Laden");
+        return r.json();
+      })
+      .then(data => {
+        setTodos(data);
+        setLoadError(false);
+      })
+      .catch(() => {
+        setLoadError(true);
+      });
   }
 
   useEffect(() => { fetchTodos(); }, []);
