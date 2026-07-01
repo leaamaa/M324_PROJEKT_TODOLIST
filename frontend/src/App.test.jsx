@@ -18,14 +18,14 @@ describe('App component', () => {
 
   test('renders heading', () => {
     render(<App />)
-
     expect(screen.getByText(/ToDo Liste/i)).toBeTruthy()
   })
 
   test('renders input and button', () => {
     render(<App />)
-
-    expect(screen.getByRole('textbox')).toBeTruthy()
+    // Es gibt zwei Textfelder (Todo + Gruppe), darum getAllByRole statt getByRole
+    const inputs = screen.getAllByRole('textbox')
+    expect(inputs.length).toBeGreaterThan(0)
     expect(
       screen.getByRole('button', { name: /Absenden/i })
     ).toBeTruthy()
@@ -33,19 +33,16 @@ describe('App component', () => {
 
   test('input updates correctly', () => {
     render(<App />)
-
-    const input = screen.getByRole('textbox')
-
+    // Erstes Textfeld ist das Todo-Eingabefeld
+    const input = screen.getAllByRole('textbox')[0]
     fireEvent.change(input, {
       target: { value: 'Test Task' }
     })
-
     expect(input.value).toBe('Test Task')
   })
 
   test('renders todo list container', () => {
     render(<App />)
-
     expect(screen.getByRole('list')).toBeTruthy()
   })
 
