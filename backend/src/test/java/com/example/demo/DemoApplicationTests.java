@@ -34,5 +34,4 @@ class DemoApplicationTests {
         Task task = new Task();
         assertTrue(task.getCreatedAt() != null);
     }
-
 }
